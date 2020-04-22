@@ -1,7 +1,9 @@
 # TPLink HS110 Pump Monitor
-Monitor a HS110 power so you can get notification on device start and stop.
-There is also an alert if the device is idle for a long period of time and if the device runs for too long.
-Usefull for a sump pump but could serve other needs.
+Pulled from https://github.com/mchenier/tplink-hs110-pump-monitor
+
+Monitor a tp-link HS110 Kasa Smart Wi-Fi Plug to receive notification on device start and stop.
+There is also an alert for device excessive run and idle time.
+Useful for a sump pump but could serve other needs.
 
 Written in Node.js using https://github.com/plasticrake/tplink-smarthome-api and https://www.npmjs.com/package/tplink-cloud-api.
 You can select if you prefer using the cloud API or Lan API.
@@ -16,10 +18,9 @@ Take a copy of the file example.config.json.
 Rename example.config.env to config.json.
 Edit the config.json to match your needs every parameter is explained in the config section.
 
-Go in the release section and take the latest version.
-https://github.com/mchenier/tplink-hs110-pump-monitor/releases
+Go to the release section and take the latest version. For Linux and Mac versions, ensure the file is executable.
 
-Run the program with the config.json in the same folder.
+Place your modified config.jason file in the same directory as the executable file. Run the executable file.
 
 ## Using Node.js
 
@@ -60,7 +61,7 @@ Change < localPath > to something like C:\TPLinkMonitor\tplink-hs110-pump-monito
 This is all parameters you must configure to make the application run. There is a file example.config.json giving you good start to setup your instance.
 
 + powerThreshold
-    + Power at witch the device is detected to be started (I think the unit is watt).
+    + Power at which the device is detected to be started (watt).
 
 + aliasDevice
     + Name of your device in the TPLink app.
@@ -74,45 +75,45 @@ This is all parameters you must configure to make the application run. There is 
     + Password for the sender email.
 
 + emailReceiver
-    + Email to witch you will received the alerts. I use the same but it could be another one.
+    + Email that will receive the alerts.
 
 + logFileName
     + Filename of the log. It will be appended with a .log.
 
 + idleThreshold
-    + Number of time in second the pump can be idle before you get an alert.
+    + Time the device can be idle for, before alert is triggered (seconds).
 
 + repeatRunningAlertEvery
-    + Time in second between each of running alert message in a period of alert threshold exceeded.
+    + Delay between each excessive running alert message (seconds).
 
 + repeatIdleAlertEvery
-    + Time in second between each of idle alert message in a period of alert threshold exceeded.
+    + Delay between each excessive idle alert message (seconds).
 
 + deviceRunningTimeThreshold
-    + Alert if the device running for more that threshold in second each time it starts.
+    + Time the device can be running for, before alert is triggered (seconds).
 
 + nbLineLogEmail
-    + Number of line of the log to send in the email.
+    + Number of lines of the log to send in the email.
 
 + waitBetweenRead
-    + Thats the time between each poll to the power of the device in second.
+    + Device will be polled at the rate specified (seconds).
 
 + enableIdleAlert
-    + Enable alerts when idle for too long. Possible value: on, off
+    + Enable alerts for excessive idle (on, off).
 
 + enableRunningAlert
-    + Enable alerts when running for too long. Possible value: on, off
+    + Enable alerts for excessive running. (on, off).
 
 + enableStartAlert
-    + Enable alerts when device start. Possible value: on, off
+    + Enable alerts when device starts (on, off).
 
 + enableStopAlert
-    + Enable alerts when device stop. Possible value: on, off
+    + Enable alerts when device stops (on, off).
 
 ### LAN API related
 
 + deviceIP
-    + IP of the device you want to monitor. If set to 0.0.0.0 will search for it but I don't recommend it. Was made available because of problem with the search device api.
+    + IP of the tp-link plug to monitor. If set to 0.0.0.0 will search for it but I don't recommend it. Was made available because of problem with the search device api.
 
 ### Cloud API related
 
@@ -146,13 +147,17 @@ Just have a config.json in the same directory has the executable and execute it.
 
 + Alert when device start.
 + Alert when device stop.
-+ Alert when device runs for too much time.
-+ Alert when device is idle for too much time.
-+ Reminder alert for device idle and running pass the threshold.
++ Alert due to device excessive run time.
++ Alert due to device excessive idle time.
++ Reminder alert for device excessive idle and running time.
+
+![Excessive Running Alerts](https://github.com/vdasilva/tplink-hs110-pump-monitor/blob/master/Excessive%20Running%20Alert.png)
+
+![Excessive Idle Alerts](https://github.com/vdasilva/tplink-hs110-pump-monitor/blob/master/Excessive%20Idle%20Alert.png)
 
 You can find logs in the ./log folder. 
 
-There is also a file *_graph.csv you can use to analyse your data more easely. I use Google Sheet and a scatter point graph.
+There is also a file *_graph.csv to assist with data analysis.
 
 Every alert an email is sent to the email you choose. The last start/stop event will be send in the body of the message.
 

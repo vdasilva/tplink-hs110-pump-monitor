@@ -1,5 +1,5 @@
 # TPLink HS110 Pump Monitor
-Pulled from https://github.com/mchenier/tplink-hs110-pump-monitor
+Forked from https://github.com/mchenier/tplink-hs110-pump-monitor
 
 Monitor a tp-link HS110 Kasa Smart Wi-Fi Plug to receive notification on device start and stop.
 There is also an alert for device excessive run and idle time.
@@ -163,5 +163,4 @@ Every alert an email is sent to the email you choose. The last start/stop event 
 
 # Improvement
 
-I made this little project because the need of monitoring my pump is important for me and didn't find anything else that work like I wanted.
-If you want to contribute or have a good idea please let me know.
+If you would like to contribute, please submit your ideas to the original project at: https://github.com/mchenier/tplink-hs110-pump-monitor

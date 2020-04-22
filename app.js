@@ -1,4 +1,3 @@
-//Comment
 var CONFIG = require(process.cwd() + '/config.json');
 
 const utils = require("./utils.js");

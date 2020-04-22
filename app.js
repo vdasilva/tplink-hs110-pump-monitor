@@ -16,6 +16,7 @@ else {
 var monitoredDevice = {
   started: false,
   lastStartedTime: undefined,
+  lastStoppedTime: undefined,
   lastTimeIdleAlert: undefined,
   lastTimeRunningAlert: undefined,
   usage: undefined,
@@ -25,6 +26,7 @@ var monitoredDevice = {
   init: function() {
     this.started = false;
     this.lastStartedTime = utils.getDate();
+    this.lastStoppedTime = utils.getDate();
     this.lastTimeIdleAlert = utils.getDate();
     this.lastTimeRunningAlert = utils.getDate();
     this.usage = undefined;    
@@ -32,6 +34,7 @@ var monitoredDevice = {
   isDeviceStarted: function() { return this.started; },
   isDeviceStopped: function() { return !this.started; },
   getTimeSinceLastStart: function() { utils.getDate() - monitoredDevice.lastStartedTime; },
+  getTimeSinceLastStop: function() { utils.getDate() - monitoredDevice.lastStoppedTime; },
   getTimeFromLastRunningAlert: function() { utils.getDate() - monitoredDevice.lastTimeRunningAlert; },
   getTimeFromLastIdleAlert: function() { utils.getDate() - monitoredDevice.lastTimeIdleAlert; },
   startDevice: function() { 
@@ -47,19 +50,17 @@ var monitoredDevice = {
 async function main() {     
   loggerDebug.info("-----Monitoring started!-----");   
   loggerDebug.info("Acceptable Idle             : " + (CONFIG.idleThreshold/60).toFixed(2) + " minutes");
-  loggerDebug.info("Alert for  Idle every       : " + (CONFIG.repeatIdleAlertEvery/60).toFixed(2) + " minutes");
-  loggerDebug.info("Acceptable Activity               : " + (CONFIG.deviceRunningTimeThreshold/60).toFixed(2) + " minutes");
-  loggerDebug.info("Alert for Excessive activity every: " + (CONFIG.repeatRunningAlertEvery/60).toFixed(2) + " minutes"); 
+  loggerDebug.info("Alert for Idle every       : " + (CONFIG.repeatIdleAlertEvery/60).toFixed(2) + " minutes");
+  loggerDebug.info("Acceptable Running               : " + (CONFIG.deviceRunningTimeThreshold/60).toFixed(2) + " minutes");
+  loggerDebug.info("Alert for Excessive Running every: " + (CONFIG.repeatRunningAlertEvery/60).toFixed(2) + " minutes"); 
   monitoredDevice.init();
-  
   await api.initDevice();
 
   while (true) {
     try {              
       monitoredDevice.usage = await api.getUsage();   
-      
       monitoring(monitoredDevice.usage);
-      
+      // Wait for poll period
       await utils.sleep(CONFIG.waitBetweenRead);  
     }
     catch (err) {
@@ -85,37 +86,44 @@ const monitoring = function(usage) {
 function verifyStartStop() {
   if (monitoredDevice.getPower() > CONFIG.powerThreshold) {            
     if (monitoredDevice.isDeviceStopped()) {
-      monitoredDevice.startDevice();    
+      monitoredDevice.startDevice();
+      logger.info(CONFIG.aliasDevice + " Started");
       if(CONFIG.enableStartAlert == "on") {
-        logger.info(CONFIG.aliasDevice + " Started");
         utils.sendEmail(CONFIG.aliasDevice + " Started", api);
       }      
     }
   }
   else if (monitoredDevice.isDeviceStarted()) {    
     monitoredDevice.stopDevice();
+    monitoredDevice.lastStoppedTime = utils.getDate();
+    logger.info(CONFIG.aliasDevice + " Stopped");
     if(CONFIG.enableStopAlert == "on") {
-      logger.info(CONFIG.aliasDevice + " Stopped");
       utils.sendEmail(CONFIG.aliasDevice + " stopped", api);
     }         
   }
 }
 
 function verifyIdleTime() {    
-  if (CONFIG.enableIdleAlert == "on" &&
-    monitoredDevice.getTimeFromLastIdleAlert() >= CONFIG.repeatIdleAlertEvery &&
-    monitoredDevice.isDeviceStopped && monitoredDevice.getTimeSinceLastStart() >= CONFIG.idleThreshold) {      
-    utils.sendEmail(CONFIG.aliasDevice + " didn't start for the last " + (monitoredDevice.getTimeSinceLastStart())/60 + " minutes", api);    
-    monitoredDevice.lastTimeIdleAlert = utils.getDate();
+  if (monitoredDevice.getTimeFromLastIdleAlert() >= CONFIG.repeatIdleAlertEvery &&
+      monitoredDevice.isDeviceStopped && 
+      monitoredDevice.getTimeSinceLastStop() >= CONFIG.idleThreshold) {      
+        monitoredDevice.lastTimeIdleAlert = utils.getDate();
+        loggerDebug.info(CONFIG.aliasDevice + " Excessive Idle time re-trigger alert raised.");
+        if (CONFIG.enableIdleAlert == "on") {
+          utils.sendEmail(CONFIG.aliasDevice + " didn't start for the last " + (monitoredDevice.getTimeSinceLastStart())/60 + " minutes", api);    
+        }
   }
 }
 
 function verifyRunningTime() {
-  if (CONFIG.enableRunningAlert == "on" && 
+  if (
     monitoredDevice.getTimeFromLastRunningAlert() >= CONFIG.repeatRunningAlertEvery &&
     monitoredDevice.isDeviceStarted() && monitoredDevice.getTimeSinceLastStart() >= CONFIG.deviceRunningTimeThreshold) {
-    utils.sendEmail(CONFIG.aliasDevice + " running for more then " + (monitoredDevice.getTimeSinceLastStart())/60 + " minutes", api);    
-    monitoredDevice.lastTimeRunningAlert = utils.getDate();
+      monitoredDevice.lastTimeRunningAlert = utils.getDate();
+      loggerDebug.info(CONFIG.aliasDevice + " Excessive Running time re-trigger alert raised.");
+      if (CONFIG.enableRunningAlert == "on") { 
+        utils.sendEmail(CONFIG.aliasDevice + " running for more then " + (monitoredDevice.getTimeSinceLastStart())/60 + " minutes", api);    
+      }
   }
 }
 

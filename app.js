@@ -43,6 +43,7 @@ var monitoredDevice = {
   },
   stopDevice: function() {    
     this.started = false;
+    this.lastStoppedTime = utils.getDate();
     utils.saveGraphData(this); 
   }   
 }
@@ -95,7 +96,6 @@ function verifyStartStop() {
   }
   else if (monitoredDevice.isDeviceStarted()) {    
     monitoredDevice.stopDevice();
-    monitoredDevice.lastStoppedTime = utils.getDate();
     logger.info(CONFIG.aliasDevice + " Stopped");
     if(CONFIG.enableStopAlert == "on") {
       utils.sendEmail(CONFIG.aliasDevice + " stopped", api);
